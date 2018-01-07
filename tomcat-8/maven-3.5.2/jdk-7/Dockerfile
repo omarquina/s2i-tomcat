@@ -7,9 +7,9 @@ MAINTAINER Sarcouy <sarcouy@protonmail.com>
 
 EXPOSE 8080
 
-ENV TOMCAT_VERSION=8.0.43 \
+ENV TOMCAT_VERSION=8.0.48 \
     TOMCAT_MAJOR=8 \
-    MAVEN_VERSION=3.5.0 \
+    MAVEN_VERSION=3.5.2 \
     TOMCAT_DISPLAY_VERSION=8 \
     CATALINA_HOME=/tomcat \
     JAVA="java-1.7.0-openjdk java-1.7.0-openjdk-devel" \
@@ -21,19 +21,21 @@ LABEL io.k8s.description="Platform for building and running Java applications on
       io.openshift.expose-services="8080:http" \
       io.openshift.tags="builder,tomcat,tomcat8" \
       io.openshift.s2i.destination="/opt/s2i/destination"
-
+# Install Deps
+RUN yum reinstall -y --enablerepo=centosplus coreutils && \
+    echo $(which ln)
 # Install Maven, Tomcat, Java
 RUN INSTALL_PKGS="tar unzip bc which lsof $JAVA" && \
     yum install -y --enablerepo=centosplus $INSTALL_PKGS && \
     rpm -V $INSTALL_PKGS && \
-    yum clean all -y && \
-    (curl -v https://www.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz | \
-    tar -zx -C /usr/local) && \
-    ln -sf /usr/local/apache-maven-$MAVEN_VERSION/bin/mvn /usr/local/bin/mvn && \
+    yum clean all -y 
+RUN curl -v https://www.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz | tar -zx -C /usr/local 
+RUN /usr/bin/ln -sf /usr/local/apache-maven-$MAVEN_VERSION/bin/mvn /usr/local/bin/mvn && \
     mkdir -p $HOME/.m2 && \
-    mkdir -p /tomcat && \
-    (curl -v https://www.apache.org/dist/tomcat/tomcat-$TOMCAT_MAJOR/v$TOMCAT_VERSION/bin/apache-tomcat-$TOMCAT_VERSION.tar.gz | tar -zx --strip-components=1 -C /tomcat) && \
-    mkdir -p /opt/s2i/destination
+    mkdir -p /tomcat 
+RUN echo "https://www.apache.org/dist/tomcat/tomcat-$TOMCAT_MAJOR/v$TOMCAT_VERSION/bin/apache-tomcat-$TOMCAT_VERSION.tar.gz"
+RUN curl -v https://www.apache.org/dist/tomcat/tomcat-$TOMCAT_MAJOR/v$TOMCAT_VERSION/bin/apache-tomcat-$TOMCAT_VERSION.tar.gz | tar -zx --strip-components=1 -C /tomcat 
+RUN mkdir -p /opt/s2i/destination
 
 # Add s2i tomcat customizations
 ADD ./contrib/settings.xml $HOME/.m2/
