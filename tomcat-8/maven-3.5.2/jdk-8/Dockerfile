@@ -22,8 +22,7 @@ LABEL io.k8s.description="Platform for building and running Java applications on
       io.openshift.tags="builder,tomcat,tomcat8" \
       io.openshift.s2i.destination="/opt/s2i/destination"
 # Install Deps
-RUN yum reinstall -y --enablerepo=centosplus coreutils && \
-    echo $(which ln)
+RUN yum reinstall -y --enablerepo=centosplus coreutils
 # Install Maven, Tomcat, Java
 RUN INSTALL_PKGS="tar unzip bc which lsof $JAVA" && \
     yum install -y --enablerepo=centosplus $INSTALL_PKGS && \
