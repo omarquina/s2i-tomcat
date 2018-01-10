@@ -3,7 +3,7 @@
 
 FROM openshift/base-centos7
 
-MAINTAINER Sarcouy <sarcouy@protonmail.com>
+MAINTAINER Omarquina <marquina_o@yahoo.es>
 
 EXPOSE 8080
 
@@ -16,11 +16,19 @@ ENV TOMCAT_VERSION=8.0.48 \
     JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8 \
     POM_PATH=.
 
+RUN echo "HOMA: $HOME"
+
 LABEL io.k8s.description="Platform for building and running Java applications on Apache-Tomcat 8.0.43" \
       io.k8s.display-name="Apache-Tomcat 8.0.43" \
       io.openshift.expose-services="8080:http" \
       io.openshift.tags="builder,tomcat,tomcat8" \
       io.openshift.s2i.destination="/opt/s2i/destination"
+
+
+RUN pwd
+RUN ls -ls
+#COPY cas-wars $CATALINA_HOME/webapps/
+
 # Install Deps
 RUN yum reinstall -y --enablerepo=centosplus coreutils
 # Install Maven, Tomcat, Java
@@ -33,6 +41,7 @@ RUN /usr/bin/ln -sf /usr/local/apache-maven-$MAVEN_VERSION/bin/mvn /usr/local/bi
     mkdir -p $HOME/.m2 && \
     mkdir -p /tomcat 
 RUN echo "https://www.apache.org/dist/tomcat/tomcat-$TOMCAT_MAJOR/v$TOMCAT_VERSION/bin/apache-tomcat-$TOMCAT_VERSION.tar.gz"
+
 RUN curl -v https://www.apache.org/dist/tomcat/tomcat-$TOMCAT_MAJOR/v$TOMCAT_VERSION/bin/apache-tomcat-$TOMCAT_VERSION.tar.gz | tar -zx --strip-components=1 -C /tomcat 
 RUN mkdir -p /opt/s2i/destination
 
@@ -40,7 +49,7 @@ RUN mkdir -p /opt/s2i/destination
 ADD ./contrib/settings.xml $HOME/.m2/
 
 # Copy the S2I scripts from the specific language image to $STI_SCRIPTS_PATH
-COPY ./s2i/bin/ $STI_SCRIPTS_PATH
+#COPY ./s2i/bin/ $STI_SCRIPTS_PATH
 
 RUN chown -R 1001:0 /tomcat && chown -R 1001:0 $HOME && \
     chmod -R ug+rwx /tomcat && \
@@ -48,4 +57,9 @@ RUN chown -R 1001:0 /tomcat && chown -R 1001:0 $HOME && \
 
 USER 1001
 
-CMD $STI_SCRIPTS_PATH/usage
+RUN pwd
+RUN ls -ls
+# Copiando los war en webapps
+COPY cas-wars $CATALINA_HOME/webapps/ 
+
+#CMD $STI_SCRIPTS_PATH/usage
