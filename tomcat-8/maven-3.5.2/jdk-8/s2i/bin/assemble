@@ -15,7 +15,7 @@ function restore_saved_artifacts() {
 # Source code provided to S2I is at ${HOME}
 LOCAL_SOURCE_DIR=${HOME}
 mkdir -p $LOCAL_SOURCE_DIR
-
+echo "LOCAL_SOURCE_DIR: $LOCAL_SOURCE_DIR"
 # the subdirectory within LOCAL_SOURCE_DIR from where we should copy build
 # artifacts (*.war, *.jar)
 ARTIFACT_DIR=${ARTIFACT_DIR:-target}
@@ -23,16 +23,34 @@ ARTIFACT_DIR=${ARTIFACT_DIR:-target}
 # Resulting WAR files will be deployed to $CATALINA_HOME/standalone/deployments
 DEPLOY_DIR=$CATALINA_HOME/webapps
 mkdir -p $DEPLOY_DIR
-
+echo "DEPLOY_DIR: $DEPLOY_DIR"
+echo `pwd && cat $LOCAL_SOURCE_DIR/pom.xml && ls -ls $LOCAL_SOURCE_DIR/src`
 # Copy the source for compilation
 cp -Rf /opt/s2i/destination/src/. $LOCAL_SOURCE_DIR
 chgrp -R 0 $LOCAL_SOURCE_DIR
 chmod -R g+rw $LOCAL_SOURCE_DIR
 
+echo "LISTANDO DIR ACTUAL: `pwd` `ls -ls ./*`"
+echo "LISTANDO LOCAL_SOURCE_DIR: `ls -ls $LOCAL_SOURCE_DIR/*`"
+echo "CATALINa_HOME: $CATLINA_HOME"
+ls $CATALINA_HOME/..
+find / -iname *serv*
+echo "----------"
+echo "ls OPT  `ls /opt/*`"
 # If a pom.xml is present, this is a normal build scenario
 # so run maven.
-if [ -f "$LOCAL_SOURCE_DIR/$POM_PATH/pom.xml" ]; then
+echo "FIND POM PATH: `find -name *pom*`"
+if [ "$WAR_NAME" == "" ]; then
+  echo "WAR_NAME es vacio lo voy a cambiar a  este valor *.war"
+  WAR_NAME=*.war
+else
+  echo "WAR_NAME Tiene valor"
+fi
 
+echo "WAR_NAME 1: ----$WAR_NAME-----"
+echo "-------  BUSCANDO POM.XML"
+if [ -f "$LOCAL_SOURCE_DIR/$POM_PATH/pom.xml" ]; then
+  echo "-------------------------------- ENCONTRO POM.XML --------"
   if [ -z "$INCREMENTAL" ]; then
     export INCREMENTAL=true
   fi
@@ -46,6 +64,7 @@ if [ -f "$LOCAL_SOURCE_DIR/$POM_PATH/pom.xml" ]; then
   fi
 
   pushd $LOCAL_SOURCE_DIR/$POM_PATH &> /dev/null
+  echo "----- list donde se va a compilar $LOCAL_SOURCE_DIR/$POM_PATH, `ls $LOCAL_SOURCE_DIR/$POM_PATH`"
 
   if [ -z "$MAVEN_ARGS" ]; then
     #export MAVEN_ARGS="clean install -DskipTests"
@@ -56,6 +75,7 @@ if [ -f "$LOCAL_SOURCE_DIR/$POM_PATH/pom.xml" ]; then
   # Can be relative to application root
   # Can be global to image
   if [ -z "$MAVEN_SETTINGS" ]; then
+    export CLASSPATH=/tomcat/lib
     export MAVEN_ARGS="$MAVEN_ARGS -s $HOME/.m2/settings.xml"
   else
     if [[ "$MAVEN_SETTINGS" = /* ]]; then
@@ -72,10 +92,16 @@ if [ -f "$LOCAL_SOURCE_DIR/$POM_PATH/pom.xml" ]; then
     export MAVEN_ARGS="$MAVEN_ARGS $MAVEN_ARGS_APPEND"
   fi
   echo " Found pom.xml... attempting to build with 'mvn ${MAVEN_ARGS}'"
-
+  echo "MaVen VERSiON"
   mvn --version
+  #echo "MAVEN INPECCIONANDO CLASSPATH  --------------------------------------------"
+  #mvn dependency:build-classpath $MAVEN_ARGS
+  echo "ANTES de COMPILAR"
   mvn $MAVEN_ARGS
 
+  echo "FIND WAR_NAME 1: `find -name $WAR_NAME`"
+  echo "LS MAVEN DIRECTORY: `ls $HOME/.m2/*`"
+  echo "FIND servlets from maven DIRECTORY: `find $HOME/.m2/ -iname *serv*`"
   ERR=$?
   if [ $ERR -ne 0 ]; then
     echo "Aborting due to error code $ERR from mvn $MAVEN_ARGS"

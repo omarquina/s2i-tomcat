@@ -14,16 +14,16 @@ ENV TOMCAT_VERSION=8.0.48 \
     CATALINA_HOME=/tomcat \
     JAVA="java-1.8.0-openjdk java-1.8.0-openjdk-devel" \
     JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8 \
-    POM_PATH=.
+    POM_PATH=. \
+    CLASSPATH=/tomcat/lib
 
-RUN echo "HOMA: $HOME"
+RUN echo "HOME: ${HOME}"
 
 LABEL io.k8s.description="Platform for building and running Java applications on Apache-Tomcat 8.0.43" \
       io.k8s.display-name="Apache-Tomcat 8.0.43" \
       io.openshift.expose-services="8080:http" \
       io.openshift.tags="builder,tomcat,tomcat8" \
       io.openshift.s2i.destination="/opt/s2i/destination"
-
 
 RUN pwd
 RUN ls -ls
@@ -49,7 +49,7 @@ RUN mkdir -p /opt/s2i/destination
 ADD ./contrib/settings.xml $HOME/.m2/
 
 # Copy the S2I scripts from the specific language image to $STI_SCRIPTS_PATH
-#COPY ./s2i/bin/ $STI_SCRIPTS_PATH
+COPY ./s2i/bin/ $STI_SCRIPTS_PATH
 
 RUN chown -R 1001:0 /tomcat && chown -R 1001:0 $HOME && \
     chmod -R ug+rwx /tomcat && \
@@ -60,6 +60,13 @@ USER 1001
 RUN pwd
 RUN ls -ls
 # Copiando los war en webapps
-COPY cas-wars $CATALINA_HOME/webapps/ 
+#COPY cas-wars $CATALINA_HOME/webapps/ 
+RUN echo "listando /TOMCA "
 
-#CMD $STI_SCRIPTS_PATH/usage
+RUN ls /tomcat
+
+RUN find -iname *serv*
+
+RUN ls /tomcat/lib
+
+CMD $STI_SCRIPTS_PATH/usage
