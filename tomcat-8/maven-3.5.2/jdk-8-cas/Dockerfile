@@ -7,7 +7,7 @@ MAINTAINER Omarquina <marquina_o@yahoo.es>
 
 EXPOSE 8080
 
-ENV TOMCAT_VERSION=8.0.48 \
+ENV TOMCAT_VERSION=8.0.49 \
     TOMCAT_MAJOR=8 \
     MAVEN_VERSION=3.5.2 \
     TOMCAT_DISPLAY_VERSION=8 \
@@ -19,8 +19,8 @@ ENV TOMCAT_VERSION=8.0.48 \
 
 RUN echo "HOME: ${HOME}"
 
-LABEL io.k8s.description="Platform for building and running Java applications on Apache-Tomcat 8.0.43" \
-      io.k8s.display-name="Apache-Tomcat 8.0.43" \
+LABEL io.k8s.description="Platform for building and running Java applications on Apache-Tomcat 8.0.49" \
+      io.k8s.display-name="Apache-Tomcat 8.0.49" \
       io.openshift.expose-services="8080:http" \
       io.openshift.tags="builder,tomcat,tomcat8" \
       io.openshift.s2i.destination="/opt/s2i/destination"
