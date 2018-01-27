@@ -42,7 +42,7 @@ RUN ln -s /autofs/portal_municipal /portal_municipal
 RUN echo 'LOGGING="verbose"' >> /etc/sysconfig/autofs
 RUN echo "portal_municipal 192.168.6.70:/portal_municipal" > /etc/auto.nfs
 # Install Mysql client
-RUN yum install mysql
+RUN yum install mysql -y
 # Install Maven, Tomcat, Java
 RUN INSTALL_PKGS="tar unzip bc which lsof $JAVA" && \
     yum install -y --enablerepo=centosplus $INSTALL_PKGS && \
