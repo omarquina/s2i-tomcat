@@ -17,7 +17,7 @@ ENV TOMCAT_VERSION=8.0.49 \
     POM_PATH=. \
     CLASSPATH=/tomcat/lib
 
-RUN echo "HOME: ${HOME}"
+#RUN echo "HOME: ${HOME}"
 
 LABEL io.k8s.description="Platform for building and running Java applications on Apache-Tomcat 8.0.49" \
       io.k8s.display-name="Apache-Tomcat 8.0.49" \
@@ -26,23 +26,28 @@ LABEL io.k8s.description="Platform for building and running Java applications on
       io.openshift.s2i.destination="/opt/s2i/destination"
 
 #########################################################
-#########################################################
-#########################################################
 
-RUN pwd
-RUN ls -ls
+#RUN pwd
+#RUN ls -ls
 #COPY cas-wars $CATALINA_HOME/webapps/
 
 # Install Deps
 RUN yum reinstall -y --enablerepo=centosplus coreutils
 #Instalación de librerías para soportar NFS y autofs
-RUN yum install autofs nfs-utils -y
+
+# Config autofs/nfs
+RUN yum install -y\
+         autofs \
+         nfs-utils
 RUN mkdir /autofs 
 RUN ln -s /autofs/portal_municipal /portal_municipal
 RUN echo 'LOGGING="verbose"' >> /etc/sysconfig/autofs
 RUN echo "portal_municipal 192.168.6.70:/portal_municipal" > /etc/auto.nfs
+
+ 
 # Install Mysql client
 RUN yum install mysql -y
+
 # Install Maven, Tomcat, Java
 RUN INSTALL_PKGS="tar unzip bc which lsof $JAVA" && \
     yum install -y --enablerepo=centosplus $INSTALL_PKGS && \
@@ -82,3 +87,12 @@ RUN find -iname *serv*
 RUN ls /tomcat/lib
 
 CMD $STI_SCRIPTS_PATH/usage
+
+#cat <<EOF > /etc/auto.master 
+#/autofs     /etc/auto.nfs
+#/net        -hosts
+#+auto.master
+#EOF
+
+#USER root
+#RUN echo "1234" | passwd --stdin root
